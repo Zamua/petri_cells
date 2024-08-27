@@ -5,8 +5,8 @@ from cross_react_programs import cross_react_programs, random_program, to_int_ar
 from kivy_ui import StandardUI
 from kivy.uix.widget import Widget
 
-LENGTH = 100
-WIDTH = 100
+LENGTH = 20
+WIDTH = 20
 PRINTS_FREQUENCY = 100
 
 def update_state(grid):
@@ -30,33 +30,6 @@ def update_state(grid):
     return grid
 
 
-def slice_array(arr, num_segments):
-    n = len(arr)
-    slice_size = n // num_segments
-    remainder = n % num_segments
-    slices = []
-    start = 0
-    for i in range(num_segments):
-        end = start + slice_size + (1 if i < remainder else 0)
-        slices.append(arr[start:end])
-        start = end
-    return slices
-
-
-def to_color(program):
-    def to_hash(in_slice):
-        res = 0
-        for sub_slice in slice_array(in_slice, 8):
-            res <<= 1
-            res += sum(sub_slice) % 2
-        return res
-    as_int_arr = to_int_arr(program)
-    three_slices = slice_array(as_int_arr, 3)
-    three_slices[0] = three_slices[0][::-1]
-    r, g, b = [to_hash(cur_slice) / 256 for cur_slice in three_slices]
-    return r, g, b
-
-
 class ColorfulCell(Widget):
     def __init__(self, **kwargs):
         super(ColorfulCell, self).__init__(**kwargs)
@@ -74,6 +47,65 @@ class ColorfulCell(Widget):
     def set_color(self, rgb_tuple):
         self.color.rgb = rgb_tuple
         self.color.a = 1
+
+
+class ProgramCell(GridLayout):
+
+    def __init__(self, **kwargs):
+        super(ProgramCell, self).__init__(**kwargs)
+        self.cells = []
+        self.cols = 8
+        self.rows = 8
+
+        for _ in range(8 * 8):
+            cell = ColorfulCell()
+            self.add_widget(cell)
+            self.cells.append(cell)
+
+        self.color_mapping = {
+            # white = 0
+            0: (0.9375, 0.94921875, 0.953125),
+            # red = <
+            1: (0.90234375, 0.296875, 0.234375),
+            # orange = >
+            2: (0.94921875, 0.609375, 0.0703125),
+            # yellow = {
+            3: (0.953125, 0.8125, 0.24609375),
+            # brown = }
+            4: (0.48046875, 0.24609375, 0.0),
+            # dark green = -
+            5: (0.078125, 0.3515625, 0.1953125),
+            # light green = +
+            6: (0.6328125, 0.84765625, 0.8046875),
+            # dark blue = .
+            7: (0.1015625, 0.3203125, 0.4609375),
+            # cyan = ,
+            8: (0.63671875, 0.890625, 0.83984375),
+            # purple = [
+            9: (0.5546875, 0.265625, 0.67578125),
+            # pink = ]
+            10: (0.68359375, 0.4765625, 0.76953125),
+        }
+
+    def int_to_color(self, num):
+        if num in self.color_mapping:
+            return self.color_mapping[num]
+        elif num < 0:
+            x = 1 + (num / 256)
+            x = max(0, x)
+            return x, x, x
+        elif num > 10:
+            x = 1 - (num / 256)
+            x = max(0, x)
+            # subtract from r to differentiate from negatives
+            r = x - 10
+            return r, x, x
+
+    def set_color(self, program):
+        as_int_arr = to_int_arr(program)
+        for cell, num in zip(self.cells, as_int_arr):
+            color_tuple = self.int_to_color(num)
+            cell.set_color(color_tuple)
 
 
 class BoardExecutor:
@@ -94,7 +126,7 @@ class BoardExecutor:
         self.grid_cells = [[None] * LENGTH for _ in range(WIDTH)]
         for x in range(WIDTH):
             for y in range(LENGTH):
-                cell = ColorfulCell()
+                cell = ProgramCell()
                 grid_layout.add_widget(cell)
                 self.grid_cells[x][y] = cell
         layout.add_widget(grid_layout)
@@ -108,12 +140,9 @@ class BoardExecutor:
 
     def update_content(self):
         print(self.epoch)
-        if self.epoch % PRINTS_FREQUENCY == 0:
-            print([[to_color(x) for x in y] for y in self.grid_data])
         for x, row in enumerate(self.grid_data):
             for y, cell in enumerate(row):
-                color = to_color(cell)
-                self.grid_cells[x][y].set_color(color)
+                self.grid_cells[x][y].set_color(cell)
 
 
 if __name__ == '__main__':

@@ -130,5 +130,5 @@ class BrainfuckExecutor:
 
 
 if __name__ == '__main__':
-    initial_state = None
+    initial_state = [4, 9, 5, 1, 0, 3, 3, 1, 8, 1, 2, 8, 1, 6, 0, 4, 8, 4, 6, 9, 7, 6, 6, 8, 2, 10, 7, 10, 6, 6, 4, 10, 6, 3, 6, 9, 9, 10, 8, 3, 2, 6, 7, 6, 8, 8, 4, 1, 8, 6, 4, 0, 3, 3, 2, 4, 4, 0, 0, 6, 7, 7, 10, 7]
     StandardUI(BrainfuckExecutor(), initial_state).run()
