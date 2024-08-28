@@ -161,6 +161,8 @@ function createGrid(width, height) {
   container.innerHTML = "";
 
   const stepCounter = document.createElement("div");
+
+  stepCounter.textContent = `Step: 0`;
   stepCounter.id = "stepCounter";
   stepCounter.style.textAlign = "center";
   stepCounter.style.fontSize = "18px";
