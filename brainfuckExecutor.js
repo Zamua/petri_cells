@@ -1,15 +1,62 @@
 class BrainfuckExecutor {
+  toStr(asIntArr, bitOffset = 128) {
+    return asIntArr
+      .map((num) => String.fromCharCode(Math.max(num + bitOffset, 0)))
+      .join("");
+  }
+
+  toIntArr(asStr, bitOffset = 128) {
+    return Array.from(asStr).map((char) => char.charCodeAt(0) - bitOffset);
+  }
+
+  toHumanReadableStr(inputArg, withBolds = true) {
+    let intArr = inputArg;
+    if (typeof inputArg === "string") {
+      intArr = this.toIntArr(inputArg);
+    }
+
+    function intToHrChar(_int) {
+      const bfMapping = {
+        0: "0",
+        1: "<",
+        2: ">",
+        3: "{",
+        4: "}",
+        5: "-",
+        6: "+",
+        7: ".",
+        8: ",",
+        9: "[",
+        10: "]",
+      };
+      if (_int in bfMapping) {
+        return bfMapping[_int];
+      } else if (-10 <= _int && _int < 0) {
+        return String(-_int);
+      } else if (10 < _int && _int <= 26 + 10) {
+        return String.fromCharCode(_int + 65 - 11);
+      } else if (-26 - 10 <= _int && _int < -10) {
+        return String.fromCharCode(-_int + 97 - 11);
+      } else if (_int > 26 + 10) {
+        return withBolds ? "<b>%</b>" : "%";
+      } else if (_int < -26 - 10) {
+        return withBolds ? "<b>&</b>" : "&";
+      }
+    }
+    return intArr.map(intToHrChar).join("");
+  }
+
   initState(startingTape) {
     if (startingTape !== null) {
       if (Array.isArray(startingTape)) {
-        startingTape = toStr(startingTape);
+        startingTape = this.toStr(startingTape);
       }
       this.program1 = startingTape;
     } else {
       this.program1 = randomProgram();
     }
     this.state = {
-      tape: toIntArr(this.program1),
+      tape: this.toIntArr(this.program1),
       pointer: 0,
       head0: 0,
       head1: 0,
@@ -19,20 +66,16 @@ class BrainfuckExecutor {
     };
     this.running = false;
     this.runInterval = null;
-    console.log(this.program1);
   }
 
   initContent(layout) {
     this.textLayout = document.createElement("div");
     this.textLayout.style.display = "block";
-    //this.textLayout.style.position = "relative";
-    //this.textLayout.style.marginTop = "10px";
-    //this.textLayout.style.marginBottom = "200px";
     this.textLayout.style.width = "auto";
     this.textLayout.style.height = "auto";
     this.paransLabel = this.addLabel(" ".repeat(64), 0);
     this.pointerLabel = this.addLabel("v" + " ".repeat(63), 50);
-    let bfText = toHumanReadableStr(this.program1, false);
+    let bfText = this.toHumanReadableStr(this.program1, false);
     this.bfLabel = this.addLabel(bfText, 100);
     this.hLabel = this.addLabel("^" + " ".repeat(63), 150);
 
@@ -120,14 +163,13 @@ class BrainfuckExecutor {
 
   updateContent() {
     this.program1 = this.state.tape;
-    this.bfLabel.innerText = toHumanReadableStr(this.program1, false);
+    this.bfLabel.innerText = this.toHumanReadableStr(this.program1, false);
     let pointer = this.state.pointer;
     if (pointer >= this.program1.length) {
       this.running = false;
       clearInterval(this.runInterval);
     }
     let numReads = this.state.numReads;
-    console.log(numReads, pointer, this.program1);
     let h0 = this.state.head0;
     let h1 = this.state.head1;
     this.pointerLabel.innerText =
@@ -171,12 +213,11 @@ class BrainfuckExecutor {
       this.runInterval = setInterval(() => {
         this.updateState();
         this.updateContent();
-      }, 100); // Adjust the interval as needed
+      }, 10);
     }
   }
 }
 
-// Example usage:
 const contentController = new BrainfuckExecutor();
 const initialState = [
   4, 9, 5, 1, 0, 3, 3, 1, 8, 1, 2, 8, 1, 6, 0, 4, 8, 4, 6, 9, 7, 6, 6, 8, 2, 10,
