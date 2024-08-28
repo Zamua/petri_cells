@@ -94,44 +94,6 @@ function toStr(asIntArr, bitOffset = 128) {
   );
 }
 
-function toHumanReadableStr(inputArg, withBolds = true) {
-  let intArr = inputArg;
-  if (typeof inputArg === "string") {
-    intArr = toIntArr(inputArg);
-  }
-
-  function intToHrChar(_int) {
-    const bfMapping = {
-      0: "0",
-      1: "<",
-      2: ">",
-      3: "{",
-      4: "}",
-      5: "-",
-      6: "+",
-      7: ".",
-      8: ",",
-      9: "[",
-      10: "]",
-    };
-    if (_int in bfMapping) {
-      return bfMapping[_int];
-    } else if (_int >= -10 && _int < 0) {
-      return String(-_int);
-    } else if (_int > 10 && _int <= 36) {
-      return String.fromCharCode(_int + 65 - 11);
-    } else if (_int >= -36 && _int < -10) {
-      return String.fromCharCode(-_int + 97 - 11);
-    } else if (_int > 36) {
-      return withBolds ? "<b>%</b>" : "%";
-    } else if (_int < -36) {
-      return withBolds ? "<b>&</b>" : "&";
-    }
-  }
-
-  return intArr.map(intToHrChar).join("");
-}
-
 function crossReactPrograms(a, b) {
   a = toIntArr(a);
   b = toIntArr(b);
@@ -142,9 +104,8 @@ function crossReactPrograms(a, b) {
   return [a, b];
 }
 
-// Add visualization to the lifeBoard div
 function visualizeProgram(program, cellElement) {
-  if (!cellElement) return; // Add this check
+  if (!cellElement) return;
 
   const canvas = document.createElement("canvas");
   canvas.width = 32;
@@ -165,7 +126,7 @@ function visualizeProgram(program, cellElement) {
 
   cellElement.innerHTML = "";
   cellElement.appendChild(canvas);
-  cellElement.style.aspectRatio = "1 / 1"; // Add this line to ensure square cells
+  cellElement.style.aspectRatio = "1 / 1";
 }
 
 function intToColor(num) {
@@ -197,9 +158,8 @@ function intToColor(num) {
 
 function createGrid(width, height) {
   const container = document.getElementById("lifeBoard");
-  container.innerHTML = ""; // Clear existing content
+  container.innerHTML = "";
 
-  // Create step counter
   const stepCounter = document.createElement("div");
   stepCounter.id = "stepCounter";
   stepCounter.style.textAlign = "center";
@@ -207,7 +167,6 @@ function createGrid(width, height) {
   stepCounter.style.marginBottom = "10px";
   container.appendChild(stepCounter);
 
-  // Create grid
   const grid = document.createElement("div");
   grid.style.display = "grid";
   grid.style.gridTemplateColumns = `repeat(${width}, 40px)`;
@@ -216,17 +175,31 @@ function createGrid(width, height) {
   grid.style.backgroundColor = "#ccc";
   grid.style.padding = "1px";
   grid.style.width = "100%";
-  grid.style.height = "calc(100vh - 30px)"; // Adjust for step counter
+  grid.style.height = "calc(100vh - 30px)";
   grid.style.overflow = "hidden";
   container.appendChild(grid);
   const cells = [];
   for (let i = 0; i < width * height; i++) {
     const cell = document.createElement("div");
     cell.style.backgroundColor = "#fff";
+    cell.style.cursor = "pointer";
+    cell.addEventListener("click", () => copyProgramToClipboard(i));
     grid.appendChild(cell);
     cells.push(cell);
   }
   return cells;
+}
+
+function copyProgramToClipboard(index) {
+  const program = grid[Math.floor(index / WIDTH)][index % WIDTH];
+  navigator.clipboard
+    .writeText(program)
+    .then(() => {
+      alert("Program copied to clipboard!");
+    })
+    .catch((err) => {
+      console.error("Failed to copy program: ", err);
+    });
 }
 
 function updateGrid(grid, cells) {
@@ -239,7 +212,7 @@ function updateGrid(grid, cells) {
 
 function initializeGrid(width, height) {
   return Array.from({ length: height }, () =>
-    Array.from({ length: width }, () => randomProgram())
+    Array.from({ length: width }, () => randomProgram()),
   );
 }
 
@@ -253,7 +226,7 @@ function updateState(grid) {
       const y2 = (j + Math.floor(Math.random() * 5) - 2 + width) % width;
       const [newProgram1, newProgram2] = crossReactPrograms(
         grid[i][j],
-        grid[x2][y2]
+        grid[x2][y2],
       );
       grid[i][j] = newProgram1;
       grid[x2][y2] = newProgram2;
@@ -268,18 +241,24 @@ let grid = initializeGrid(WIDTH, HEIGHT);
 const cells = createGrid(WIDTH, HEIGHT);
 updateGrid(grid, cells);
 let stepCount = 0;
-updateGrid(grid, cells);
+let isRunning = false;
 
 function step() {
-  grid = updateState(grid);
-  updateGrid(grid, cells);
-  stepCount++;
-  document.getElementById("stepCounter").textContent = `Step: ${stepCount}`;
-  setTimeout(step, 0);
+  if (isRunning) {
+    grid = updateState(grid);
+    updateGrid(grid, cells);
+    stepCount++;
+    document.getElementById("stepCounter").textContent = `Step: ${stepCount}`;
+    setTimeout(step, 0);
+  }
 }
 
-step();
+document.getElementById("lifeSimRun").addEventListener("click", () => {
+  isRunning = !isRunning;
+  if (isRunning) {
+    step();
+  }
+});
 
-// Example usage
 const program = randomProgram();
 visualizeProgram(program);
