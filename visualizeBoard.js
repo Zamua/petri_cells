@@ -169,14 +169,10 @@ function createGrid(width, height) {
 
   const grid = document.createElement("div");
   grid.style.display = "grid";
-  grid.style.gridTemplateColumns = `repeat(${width}, 40px)`;
-  grid.style.gridTemplateRows = `repeat(${height}, 40px)`;
+  grid.style.gridTemplateColumns = `repeat(${width}, 30px)`;
+  grid.style.gridTemplateRows = `repeat(${height}, 30px)`;
   grid.style.gap = "1px";
-  grid.style.backgroundColor = "#ccc";
   grid.style.padding = "1px";
-  grid.style.width = "100%";
-  grid.style.height = "calc(100vh - 30px)";
-  grid.style.overflow = "hidden";
   container.appendChild(grid);
   const cells = [];
   for (let i = 0; i < width * height; i++) {
