@@ -171,8 +171,8 @@ function createGrid(width, height) {
 
   const grid = document.createElement("div");
   grid.style.display = "grid";
-  grid.style.gridTemplateColumns = `repeat(${width}, 30px)`;
-  grid.style.gridTemplateRows = `repeat(${height}, 30px)`;
+  grid.style.gridTemplateColumns = `repeat(${width}, 3vmin)`;
+  grid.style.gridTemplateRows = `repeat(${height}, 3vmin)`;
   grid.style.gap = "1px";
   grid.style.padding = "1px";
   container.appendChild(grid);
